@@ -13,10 +13,10 @@ import { FuseV1Options, FuseVersion } from "@electron/fuses";
 // import { globSync } from "node:fs";
 
 const STRINGS = {
-  author: "Revolt Platforms LTD",
-  name: "Stoat",
-  execName: "stoat-desktop",
-  description: "Open source user-first chat platform.",
+  author: "DPRS",
+  name: "Cloud",
+  execName: "cloud-desktop",
+  description: "a fork that allows you to access the better client",
 };
 
 const ASSET_DIR = "assets/desktop";
