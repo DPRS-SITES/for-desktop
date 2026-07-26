@@ -35,7 +35,8 @@ const loadInject = () => {
     try {
       const plugins: string[] = [
         "titlebar.js",
-        "css.js"
+        "screenshare.js",
+        "css.js",
       ];
 
       for (const plugin of plugins) {
