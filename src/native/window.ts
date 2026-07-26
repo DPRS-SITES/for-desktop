@@ -23,7 +23,7 @@ export let mainWindow: BrowserWindow;
 export const BUILD_URL = new URL(
   app.commandLine.hasSwitch("force-server")
     ? app.commandLine.getSwitchValue("force-server")
-    : /*MAIN_WINDOW_VITE_DEV_SERVER_URL ??*/ "https://web.fluxer.app/",
+    : /*MAIN_WINDOW_VITE_DEV_SERVER_URL ??*/ "https://web.canary.fluxer.app/",
 );
 
 // internal window state
@@ -61,6 +61,7 @@ export function createMainWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       spellcheck: true,
+      devTools: true,
     },
   });
 
@@ -87,6 +88,19 @@ export function createMainWindow() {
   if (config.windowState.isMaximised) {
     mainWindow.maximize();
   }
+
+  // Remove CSP restrictions for the CloudClient
+  session.defaultSession.webRequest.onHeadersReceived(
+    (details, callback) => {
+      const responseHeaders = Object.fromEntries(
+        Object.entries(details.responseHeaders).filter(
+          ([key]) => key.toLowerCase() !== "content-security-policy",
+        ),
+      );
+
+      callback({ responseHeaders });
+    },
+  );
 
   // load the entrypoint
   mainWindow.loadURL(BUILD_URL.toString());
@@ -143,6 +157,13 @@ export function createMainWindow() {
     ) {
       event.preventDefault();
       mainWindow.webContents.reload();
+    } else if (input.key === "F12") {
+      event.preventDefault();
+      if (mainWindow.webContents.isDevToolsOpened()) {
+        mainWindow.webContents.closeDevTools();
+      } else {
+        mainWindow.webContents.openDevTools({ mode: "detach" });
+      }
     }
   });
 
@@ -259,8 +280,6 @@ export function createMainWindow() {
     mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize(),
   );
   ipcMain.on("close", () => mainWindow.close());
-
-  // mainWindow.webContents.openDevTools();
 
   // let i = 0;
   // setInterval(() => setBadgeCount((++i % 30) + 1), 1000);
