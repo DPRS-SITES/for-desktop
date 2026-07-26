@@ -1,7 +1,7 @@
-import { Menu, Tray, nativeImage } from "electron";
+import { Menu, Tray, nativeImage, app } from "electron";
 
-import trayIconAsset from "../../assets/desktop/icon.png?asset";
-import macOsTrayIconAsset from "../../assets/desktop/iconTemplate.png?asset";
+import trayIconAsset from "../../avia_assets/icon.png?asset";
+import macOsTrayIconAsset from "../../avia_assets/iconTemplate.png?asset";
 import { version } from "../../package.json";
 
 import { mainWindow, quitApp } from "./window";
@@ -25,22 +25,14 @@ export function initTray() {
   const trayIcon = createTrayIcon();
   tray = new Tray(trayIcon);
   updateTrayMenu();
-  tray.setToolTip("Stoat for Desktop");
+  tray.setToolTip("CloudClient for Desktop");
   tray.setImage(trayIcon);
-  tray.on("click", () => {
-    if (mainWindow.isVisible()) {
-      mainWindow.hide();
-    } else {
-      mainWindow.show();
-      mainWindow.focus();
-    }
-  });
 }
 
 export function updateTrayMenu() {
   tray.setContextMenu(
     Menu.buildFromTemplate([
-      { label: "Stoat for Desktop", type: "normal", enabled: false },
+      { label: "CloudClient for Desktop", type: "normal", enabled: false },
       {
         label: "Version",
         type: "submenu",
@@ -62,6 +54,15 @@ export function updateTrayMenu() {
           } else {
             mainWindow.show();
           }
+        },
+      },
+      { type: "separator" },
+      {
+        label: "Restart App",
+        type: "normal",
+        click() {
+          app.relaunch();
+          app.quit();
         },
       },
       {
