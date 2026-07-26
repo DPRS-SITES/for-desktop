@@ -9,6 +9,7 @@ import {
   ipcMain,
   nativeImage,
   session,
+  shell,
 } from "electron";
 
 import windowIconAsset from "../../assets/desktop/icon.png?asset";
@@ -18,6 +19,9 @@ import { updateTrayMenu } from "./tray";
 
 // global reference to main window
 export let mainWindow: BrowserWindow;
+
+// global reference to the Theme Studio window
+let themeStudioWindow: BrowserWindow | null = null;
 
 // currently in-use build
 export const BUILD_URL = new URL(
@@ -34,9 +38,73 @@ const windowIcon = nativeImage.createFromDataURL(windowIconAsset);
 
 // windowIcon.setTemplateImage(true);
 
-/**
- * Create the main application window
- */
+const THEME_STUDIO_URL = "https://web.canary.fluxer.app/theme-studio";
+
+function isThemeStudioUrl(url: string) {
+  try {
+    const parsedUrl = new URL(url);
+
+    return (
+      parsedUrl.origin === "https://web.canary.fluxer.app" &&
+      parsedUrl.pathname === "/theme-studio"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function createThemeStudioWindow() {
+  if (themeStudioWindow && !themeStudioWindow.isDestroyed()) {
+    themeStudioWindow.focus();
+    return;
+  }
+
+  themeStudioWindow = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    minWidth: 800,
+    minHeight: 600,
+    backgroundColor: "#191919",
+    icon: windowIcon,
+    show: false,
+    webPreferences: {
+      preload: join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      spellcheck: true,
+      devTools: true,
+    },
+  });
+
+  themeStudioWindow.setMenu(null);
+
+  themeStudioWindow.once("ready-to-show", () => {
+    themeStudioWindow?.show();
+  });
+
+  themeStudioWindow.on("closed", () => {
+    themeStudioWindow = null;
+  });
+
+  themeStudioWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (isThemeStudioUrl(url)) {
+      createThemeStudioWindow();
+
+      return {
+        action: "deny",
+      };
+    }
+
+    shell.openExternal(url);
+
+    return {
+      action: "deny",
+    };
+  });
+
+  themeStudioWindow.loadURL(THEME_STUDIO_URL);
+}
+
 export function createMainWindow() {
   // (CLI arg --hidden or config)
   const startHidden =
@@ -56,7 +124,6 @@ export function createMainWindow() {
     icon: windowIcon,
     show: !startHidden,
     webPreferences: {
-      // relative to `.vite/build`
       preload: join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
@@ -90,17 +157,40 @@ export function createMainWindow() {
   }
 
   // Remove CSP restrictions for the CloudClient
-  session.defaultSession.webRequest.onHeadersReceived(
-    (details, callback) => {
-      const responseHeaders = Object.fromEntries(
-        Object.entries(details.responseHeaders).filter(
-          ([key]) => key.toLowerCase() !== "content-security-policy",
-        ),
-      );
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const responseHeaders = Object.fromEntries(
+      Object.entries(details.responseHeaders).filter(
+        ([key]) => key.toLowerCase() !== "content-security-policy",
+      ),
+    );
 
-      callback({ responseHeaders });
-    },
-  );
+    callback({ responseHeaders });
+  });
+
+  // Open Theme Studio in its own completely separate Electron window
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (isThemeStudioUrl(url)) {
+      createThemeStudioWindow();
+
+      return {
+        action: "deny",
+      };
+    }
+
+    shell.openExternal(url);
+
+    return {
+      action: "deny",
+    };
+  });
+
+  // Catch normal navigation to Theme Studio
+  mainWindow.webContents.on("will-navigate", (event, url) => {
+    if (isThemeStudioUrl(url)) {
+      event.preventDefault();
+      createThemeStudioWindow();
+    }
+  });
 
   // load the entrypoint
   mainWindow.loadURL(BUILD_URL.toString());
@@ -136,19 +226,16 @@ export function createMainWindow() {
   // rebind zoom controls to be more sensible
   mainWindow.webContents.on("before-input-event", (event, input) => {
     if (input.control && (input.key === "=" || input.key === "+")) {
-      // zoom in (+)
       event.preventDefault();
       mainWindow.webContents.setZoomLevel(
         mainWindow.webContents.getZoomLevel() + 1,
       );
     } else if (input.control && input.key === "-") {
-      // zoom out (-)
       event.preventDefault();
       mainWindow.webContents.setZoomLevel(
         mainWindow.webContents.getZoomLevel() - 1,
       );
     } else if (input.control && input.key === "0") {
-      // reset zoom to default.
       event.preventDefault();
       mainWindow.webContents.setZoomLevel(0);
     } else if (
@@ -159,6 +246,7 @@ export function createMainWindow() {
       mainWindow.webContents.reload();
     } else if (input.key === "F12") {
       event.preventDefault();
+
       if (mainWindow.webContents.isDevToolsOpened()) {
         mainWindow.webContents.closeDevTools();
       } else {
@@ -231,12 +319,14 @@ export function createMainWindow() {
               : callback({
                   video: sources[0],
                 });
+
             return;
           }
+
           ipcMain.once(
             "screenPickerCallback",
             (_, idx: number, audio: boolean) => {
-              if (idx < 0 || idx > sources.length) {
+              if (idx < 0 || idx >= sources.length) {
                 callback({});
               } else {
                 audio
@@ -250,10 +340,12 @@ export function createMainWindow() {
               }
             },
           );
+
           mainWindow.webContents.send(
             "screenPicker",
             sources.map((source, idx) => {
               const image = source.appIcon;
+
               if (image) {
                 if (image.getAspectRatio() > 1) {
                   image.resize({ width: 256 });
@@ -261,6 +353,7 @@ export function createMainWindow() {
                   image.resize({ height: 256 });
                 }
               }
+
               return {
                 idx: idx,
                 name: source.name,
@@ -276,10 +369,14 @@ export function createMainWindow() {
 
   // push world events to the window
   ipcMain.on("minimise", () => mainWindow.minimize());
+
   ipcMain.on("maximise", () =>
     mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize(),
   );
+
   ipcMain.on("close", () => mainWindow.close());
+
+  // mainWindow.webContents.openDevTools();
 
   // let i = 0;
   // setInterval(() => setBadgeCount((++i % 30) + 1), 1000);
