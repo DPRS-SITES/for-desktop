@@ -38,24 +38,34 @@ const windowIcon = nativeImage.createFromDataURL(windowIconAsset);
 
 // windowIcon.setTemplateImage(true);
 
-const THEME_STUDIO_URL = "https://web.canary.fluxer.app/theme-studio";
-
 function isThemeStudioUrl(url: string) {
   try {
     const parsedUrl = new URL(url);
 
-    return (
-      parsedUrl.origin === "https://web.canary.fluxer.app" &&
-      parsedUrl.pathname === "/theme-studio"
-    );
+    return parsedUrl.pathname === "/theme-studio";
   } catch {
     return false;
   }
 }
 
+/**
+ * Create the Theme Studio window
+ */
 function createThemeStudioWindow() {
   if (themeStudioWindow && !themeStudioWindow.isDestroyed()) {
     themeStudioWindow.focus();
+    return;
+  }
+
+  let themeStudioUrl: string;
+
+  try {
+    const currentUrl = new URL(mainWindow.webContents.getURL());
+    currentUrl.pathname = "/theme-studio";
+    currentUrl.search = "";
+    currentUrl.hash = "";
+    themeStudioUrl = currentUrl.toString();
+  } catch {
     return;
   }
 
@@ -102,16 +112,17 @@ function createThemeStudioWindow() {
     };
   });
 
-  themeStudioWindow.loadURL(THEME_STUDIO_URL);
+  themeStudioWindow.loadURL(themeStudioUrl);
 }
 
+/**
+ * Create the main application window
+ */
 export function createMainWindow() {
-  // (CLI arg --hidden or config)
   const startHidden =
     app.commandLine.hasSwitch("hidden") || config.startMinimisedToTray;
   const isMacOS = process.platform === "darwin";
 
-  // create the window
   mainWindow = new BrowserWindow({
     minWidth: 300,
     minHeight: 300,
@@ -132,10 +143,8 @@ export function createMainWindow() {
     },
   });
 
-  // hide the options
   mainWindow.setMenu(null);
 
-  // restore last position if it was moved previously
   if (config.windowState.x > 0 || config.windowState.y > 0) {
     mainWindow.setPosition(
       config.windowState.x ?? 0,
@@ -143,7 +152,6 @@ export function createMainWindow() {
     );
   }
 
-  // restore last size if it was resized previously
   if (config.windowState.width > 0 && config.windowState.height > 0) {
     mainWindow.setSize(
       config.windowState.width ?? 1280,
@@ -151,12 +159,10 @@ export function createMainWindow() {
     );
   }
 
-  // maximise the window if it was maximised before
   if (config.windowState.isMaximised) {
     mainWindow.maximize();
   }
 
-  // Remove CSP restrictions for the CloudClient
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const responseHeaders = Object.fromEntries(
       Object.entries(details.responseHeaders).filter(
@@ -167,7 +173,6 @@ export function createMainWindow() {
     callback({ responseHeaders });
   });
 
-  // Open Theme Studio in its own completely separate Electron window
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (isThemeStudioUrl(url)) {
       createThemeStudioWindow();
@@ -184,7 +189,6 @@ export function createMainWindow() {
     };
   });
 
-  // Catch normal navigation to Theme Studio
   mainWindow.webContents.on("will-navigate", (event, url) => {
     if (isThemeStudioUrl(url)) {
       event.preventDefault();
@@ -192,10 +196,8 @@ export function createMainWindow() {
     }
   });
 
-  // load the entrypoint
   mainWindow.loadURL(BUILD_URL.toString());
 
-  // minimise window to tray
   mainWindow.on("close", (event) => {
     if (!shouldQuit && config.minimiseToTray) {
       event.preventDefault();
@@ -203,11 +205,9 @@ export function createMainWindow() {
     }
   });
 
-  // update tray menu when window is shown/hidden
   mainWindow.on("show", updateTrayMenu);
   mainWindow.on("hide", updateTrayMenu);
 
-  // keep track of window state
   function generateState() {
     config.windowState = {
       x: mainWindow.getPosition()[0],
@@ -223,26 +223,29 @@ export function createMainWindow() {
   mainWindow.on("moved", generateState);
   mainWindow.on("resized", generateState);
 
-  // rebind zoom controls to be more sensible
   mainWindow.webContents.on("before-input-event", (event, input) => {
     if (input.control && (input.key === "=" || input.key === "+")) {
       event.preventDefault();
+
       mainWindow.webContents.setZoomLevel(
         mainWindow.webContents.getZoomLevel() + 1,
       );
     } else if (input.control && input.key === "-") {
       event.preventDefault();
+
       mainWindow.webContents.setZoomLevel(
         mainWindow.webContents.getZoomLevel() - 1,
       );
     } else if (input.control && input.key === "0") {
       event.preventDefault();
+
       mainWindow.webContents.setZoomLevel(0);
     } else if (
       input.key === "F5" ||
       ((input.control || input.meta) && input.key.toLowerCase() === "r")
     ) {
       event.preventDefault();
+
       mainWindow.webContents.reload();
     } else if (input.key === "F12") {
       event.preventDefault();
@@ -255,14 +258,11 @@ export function createMainWindow() {
     }
   });
 
-  // send the config
   mainWindow.webContents.on("did-finish-load", () => config.sync());
 
-  // configure spellchecker context menu
   mainWindow.webContents.on("context-menu", (_, params) => {
     const menu = new Menu();
 
-    // add all suggestions
     for (const suggestion of params.dictionarySuggestions) {
       menu.append(
         new MenuItem({
@@ -272,7 +272,6 @@ export function createMainWindow() {
       );
     }
 
-    // allow users to add the misspelled word to the dictionary
     if (params.misspelledWord) {
       menu.append(
         new MenuItem({
@@ -285,7 +284,6 @@ export function createMainWindow() {
       );
     }
 
-    // add an option to toggle spellchecker
     menu.append(
       new MenuItem({
         label: "Toggle spellcheck",
@@ -295,22 +293,20 @@ export function createMainWindow() {
       }),
     );
 
-    // show menu if we've generated enough entries
     if (menu.items.length > 0) {
       menu.popup();
     }
   });
 
-  // Create display media request handler
   session.defaultSession.setDisplayMediaRequestHandler(
     (request, callback) => {
       desktopCapturer
-        .getSources({ types: ["screen", "window"], fetchWindowIcons: true })
+        .getSources({
+          types: ["screen", "window"],
+          fetchWindowIcons: true,
+        })
         .then((sources) => {
-          // Shortcut for linux wayland.
-          if (sources.length == 1) {
-            // TODO: Get audio to work with wayland
-            // See vencord for an implementation using a virtual microphone.
+          if (sources.length === 1) {
             request.audioRequested
               ? callback({
                   video: sources[0],
@@ -355,7 +351,7 @@ export function createMainWindow() {
               }
 
               return {
-                idx: idx,
+                idx,
                 name: source.name,
                 isFullScreen: source.id.startsWith("screen"),
                 image: image?.toDataURL(),
@@ -367,7 +363,6 @@ export function createMainWindow() {
     { useSystemPicker: true },
   );
 
-  // push world events to the window
   ipcMain.on("minimise", () => mainWindow.minimize());
 
   ipcMain.on("maximise", () =>
@@ -376,10 +371,19 @@ export function createMainWindow() {
 
   ipcMain.on("close", () => mainWindow.close());
 
-  // mainWindow.webContents.openDevTools();
+  ipcMain.on("navigate-main-window", (_, url: string) => {
+    try {
+      const parsedUrl = new URL(url);
 
-  // let i = 0;
-  // setInterval(() => setBadgeCount((++i % 30) + 1), 1000);
+      if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+        return;
+      }
+
+      mainWindow.loadURL(parsedUrl.toString());
+    } catch {
+      console.error("Invalid URL:", url);
+    }
+  });
 }
 
 /**
@@ -390,7 +394,6 @@ export function quitApp() {
   mainWindow.close();
 }
 
-// Ensure global app quit works properly
 app.on("before-quit", () => {
   shouldQuit = true;
 });
