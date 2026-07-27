@@ -7,7 +7,7 @@
 
   titlebar.innerHTML = `
     <div class="cloudclient-titlebar-left">
-      <span class="cloudclient-titlebar-name">CloudClient</span>
+      <span class="cloudclient-titlebar-name">Cloud Client</span>
     </div>
 
     <div class="cloudclient-titlebar-spacer"></div>
