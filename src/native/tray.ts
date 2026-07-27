@@ -1,4 +1,4 @@
-import { Menu, Tray, nativeImage, app } from "electron";
+import { Menu, Tray, app, nativeImage } from "electron";
 
 import trayIconAsset from "../../assets/desktop/icon.png?asset";
 import macOsTrayIconAsset from "../../assets/desktop/iconTemplate.png?asset";
