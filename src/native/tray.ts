@@ -7,7 +7,7 @@ import { version } from "../../package.json";
 import { mainWindow, quitApp } from "./window";
 
 // internal tray state
-let tray: Tray = null; // Testing to get it working
+let tray: Tray = null;
 
 // Create and resize tray icon for macOS
 function createTrayIcon() {
