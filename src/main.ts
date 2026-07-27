@@ -37,6 +37,8 @@ const loadInject = () => {
         "titlebar.js",
         "screenshare.js",
         "css.js",
+        "menu.js",
+        "instance.js",
       ];
 
       for (const plugin of plugins) {
