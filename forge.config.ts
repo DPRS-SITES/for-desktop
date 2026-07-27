@@ -140,7 +140,7 @@ fs.readdir(
     if (err) return;
 
     for (const file of files) {
-      let ext = file.toLowerCase().split(".").pop() ?? "";
+      const ext = file.toLowerCase().split(".").pop() ?? "";
       if (["js", "ts", "tsx", "json"].includes(ext)) {
         customVitePluginBuild.push({
           entry: `cloud_core/${file}`,
