@@ -1,12 +1,15 @@
 import * as fs from "fs";
 import * as path from "path";
 import { IUpdateInfo, updateElectronApp } from "update-electron-app";
+
 import { BrowserWindow, Notification, app, shell } from "electron";
 import started from "electron-squirrel-startup";
+
 import { config } from "./native/config";
 import { initDiscordRpc } from "./native/discordRpc";
 import { initTray } from "./native/tray";
 import { BUILD_URL, createMainWindow, mainWindow } from "./native/window";
+
 // Squirrel-specific logic
 // create/remove shortcuts on Windows when installing / uninstalling
 // we just need to close out of the app immediately
