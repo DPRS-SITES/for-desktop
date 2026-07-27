@@ -1,7 +1,5 @@
 import { MakerAppX } from "@electron-forge/maker-appx";
 import { MakerDeb } from "@electron-forge/maker-deb";
-import { MakerFlatpak } from "@electron-forge/maker-flatpak";
-import { MakerFlatpakOptionsConfig } from "@electron-forge/maker-flatpak/dist/Config";
 import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerZIP } from "@electron-forge/maker-zip";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
@@ -40,63 +38,6 @@ const makers: ForgeConfig["makers"] = [
     copyright: "Copyright (C) 2025 Revolt Platforms LTD",
   }),
   new MakerZIP({}),
-  new MakerFlatpak({
-    options: {
-      id: "chat.stoat.StoatDesktop",
-      description: STRINGS.description,
-      productName: STRINGS.name,
-      productDescription: STRINGS.description,
-      runtimeVersion: "25.08",
-      icon: {
-        "16x16": `${ASSET_DIR}/hicolor/16x16.png`,
-        "32x32": `${ASSET_DIR}/hicolor/32x32.png`,
-        "64x64": `${ASSET_DIR}/hicolor/64x64.png`,
-        "128x128": `${ASSET_DIR}/hicolor/128x128.png`,
-        "256x256": `${ASSET_DIR}/hicolor/256x256.png`,
-        "512x512": `${ASSET_DIR}/hicolor/512x512.png`,
-      } as unknown,
-      categories: ["Network"],
-      modules: [
-        // use the latest zypak -- Electron sandboxing for Flatpak
-        {
-          name: "zypak",
-          sources: [
-            {
-              type: "git",
-              url: "https://github.com/refi64/zypak",
-              tag: "v2025.09",
-            },
-          ],
-        },
-      ],
-      finishArgs: [
-        // default arguments found by running
-        // DEBUG=electron-installer-flatpak* pnpm make
-        "--socket=fallback-x11",
-        "--socket=wayland",
-        "--share=ipc",
-        "--share=network",
-        "--device=dri",
-        "--device=all",
-        "--socket=pulseaudio",
-        "--filesystem=xdg-run/pipewire-0",
-        "--filesystem=xdg-videos:ro",
-        "--filesystem=xdg-pictures:ro",
-        "--filesystem=xdg-download",
-        "--filesystem=xdg-run/speech-dispatcher",
-        "--talk-name=org.freedesktop.ScreenSaver",
-        "--talk-name=org.freedesktop.Notifications",
-        "--talk-name=org.kde.StatusNotifierWatcher",
-        "--talk-name=com.canonical.AppMenu.Registrar",
-        "--talk-name=com.canonical.indicator.application",
-        "--talk-name=com.canonical.Unity",
-        "--env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons",
-        "--env=ELECTRON_TRASH=gio",
-        "--env=TMPDIR=xdg-run/app/chat.stoat.StoatDesktop",
-      ],
-      files: [],
-    } as MakerFlatpakOptionsConfig,
-  }),
 ];
 
 // skip these makers in CI/CD
