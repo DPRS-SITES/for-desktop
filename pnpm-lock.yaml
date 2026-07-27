@@ -42,9 +42,6 @@ importers:
       '@electron-forge/maker-deb':
         specifier: ^7.11.2
         version: 7.11.2(bluebird@3.7.2)(supports-color@8.1.1)
-      '@electron-forge/maker-flatpak':
-        specifier: ^7.11.2
-        version: 7.11.2(bluebird@3.7.2)(supports-color@8.1.1)
       '@electron-forge/maker-squirrel':
         specifier: ^7.11.2
         version: 7.11.2(bluebird@3.7.2)(supports-color@8.1.1)
@@ -251,10 +248,6 @@ packages:
 
   '@electron-forge/maker-deb@7.11.2':
     resolution: {integrity: sha512-MYSdCTsqzKNmsmaq7CIFh2kJdBWUZ4njxnVGrIRClzueVITk5Kots3+eQo+e5QQLvXTVn2XTNDc2nYjvtBh+Mw==}
-    engines: {node: '>= 16.4.0'}
-
-  '@electron-forge/maker-flatpak@7.11.2':
-    resolution: {integrity: sha512-tc/lw1NVB8AGIVEozccFK4BR1oj9GTdV2tH+HDD6WSqvB4mjBKVKWjeR+8En3I546dnI/qWodtSN/OiL2ZTqIQ==}
     engines: {node: '>= 16.4.0'}
 
   '@electron-forge/maker-squirrel@7.11.2':
@@ -794,16 +787,6 @@ packages:
   '@malept/cross-spawn-promise@2.0.0':
     resolution: {integrity: sha512-1DpKU0Z5ThltBwjNySMC14g0CkbyhCaz9FkhxqNsZI6uAPJXFS8cMXlBKo26FJ8ZuW6S9GCMcR9IO5k2X5/9Fg==}
     engines: {node: '>= 12.13.0'}
-
-  '@malept/electron-installer-flatpak@0.11.4':
-    resolution: {integrity: sha512-ZdwhT4WeeJWdnsmALUtQ7bn4pzYVh0Vg+4NnF1S3n3OACc9IWg+B+LxI5gT3XSXIrxogouqkjM6gD8S592awyA==}
-    engines: {node: '>= 10.0.0'}
-    os: [darwin, linux]
-    hasBin: true
-
-  '@malept/flatpak-bundler@0.4.0':
-    resolution: {integrity: sha512-9QOtNffcOF/c1seMCDnjckb3R9WHcG34tky+FHpNKKCW0wc/scYLwMtO+ptyGUfMW0/b/n4qRiALlaFHc9Oj7Q==}
-    engines: {node: '>= 10.0.0'}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -3989,17 +3972,6 @@ snapshots:
       - bluebird
       - supports-color
 
-  '@electron-forge/maker-flatpak@7.11.2(bluebird@3.7.2)(supports-color@8.1.1)':
-    dependencies:
-      '@electron-forge/maker-base': 7.11.2(bluebird@3.7.2)(supports-color@8.1.1)
-      '@electron-forge/shared-types': 7.11.2(bluebird@3.7.2)(supports-color@8.1.1)
-      fs-extra: 10.1.0
-    optionalDependencies:
-      '@malept/electron-installer-flatpak': 0.11.4(supports-color@8.1.1)
-    transitivePeerDependencies:
-      - bluebird
-      - supports-color
-
   '@electron-forge/maker-squirrel@7.11.2(bluebird@3.7.2)(supports-color@8.1.1)':
     dependencies:
       '@electron-forge/maker-base': 7.11.2(bluebird@3.7.2)(supports-color@8.1.1)
@@ -4634,28 +4606,6 @@ snapshots:
   '@malept/cross-spawn-promise@2.0.0':
     dependencies:
       cross-spawn: 7.0.6
-
-  '@malept/electron-installer-flatpak@0.11.4(supports-color@8.1.1)':
-    dependencies:
-      '@malept/flatpak-bundler': 0.4.0(supports-color@8.1.1)
-      debug: 4.4.3(supports-color@8.1.1)
-      electron-installer-common: 0.10.4(supports-color@8.1.1)
-      lodash: 4.17.21
-      semver: 7.7.2
-      yargs: 16.2.0
-    transitivePeerDependencies:
-      - supports-color
-    optional: true
-
-  '@malept/flatpak-bundler@0.4.0(supports-color@8.1.1)':
-    dependencies:
-      debug: 4.4.3(supports-color@8.1.1)
-      fs-extra: 9.1.0
-      lodash: 4.17.21
-      tmp-promise: 3.0.3
-    transitivePeerDependencies:
-      - supports-color
-    optional: true
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
