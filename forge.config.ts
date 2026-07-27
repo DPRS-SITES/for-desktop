@@ -6,9 +6,11 @@ import { MakerSquirrel } from "@electron-forge/maker-squirrel";
 import { MakerZIP } from "@electron-forge/maker-zip";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { VitePlugin } from "@electron-forge/plugin-vite";
+import { VitePluginBuildConfig } from "@electron-forge/plugin-vite/dist/Config";
 import { PublisherGithub } from "@electron-forge/publisher-github";
 import type { ForgeConfig } from "@electron-forge/shared-types";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
+import * as fs from "fs";
 
 // import { globSync } from "node:fs";
 
@@ -119,6 +121,37 @@ if (!process.env.PLATFORM) {
   );
 }
 
+const customVitePluginBuild: VitePluginBuildConfig[] = [
+  {
+    entry: "src/main.ts",
+    config: "vite.main.config.ts",
+    target: "main",
+  },
+  {
+    entry: "src/preload.ts",
+    config: "vite.preload.config.ts",
+    target: "preload",
+  },
+];
+
+fs.readdir(
+  "cloud_core",
+  (err: NodeJS.ErrnoException | null, files: string[]) => {
+    if (err) return;
+
+    for (const file of files) {
+      let ext = file.toLowerCase().split(".").pop() ?? "";
+      if (["js", "ts", "tsx", "json"].includes(ext)) {
+        customVitePluginBuild.push({
+          entry: `cloud_core/${file}`,
+          config: "vite.main.config.ts",
+          target: "main",
+        });
+      }
+    }
+  },
+);
+
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
@@ -134,21 +167,7 @@ const config: ForgeConfig = {
   makers,
   plugins: [
     new VitePlugin({
-      // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
-      // If you are familiar with Vite configuration, it will look really familiar.
-      build: [
-        {
-          // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
-          entry: "src/main.ts",
-          config: "vite.main.config.ts",
-          target: "main",
-        },
-        {
-          entry: "src/preload.ts",
-          config: "vite.preload.config.ts",
-          target: "preload",
-        },
-      ],
+      build: customVitePluginBuild,
       renderer: [],
     }),
     // Fuses are used to enable/disable various Electron functionality
@@ -166,7 +185,7 @@ const config: ForgeConfig = {
   publishers: [
     new PublisherGithub({
       repository: {
-        owner: "stoatchat",
+        owner: "DPRS-SITES",
         name: "for-desktop",
       },
     }),

@@ -14,6 +14,10 @@ contextBridge.exposeInMainWorld("native", {
   maximise: () => ipcRenderer.send("maximise"),
   close: () => ipcRenderer.send("close"),
 
+  navigate: (url: string) => {
+    ipcRenderer.send("navigate-main-window", url);
+  },
+
   setBadgeCount: (count: number) => ipcRenderer.send("setBadgeCount", count),
 
   onceScreenPicker: (
@@ -30,6 +34,7 @@ contextBridge.exposeInMainWorld("native", {
     ipcRenderer.removeAllListeners(eventName);
     ipcRenderer.once(eventName, (_, sources) => onScreenPick(sources));
   },
+
   screenPickerCallback: (idx: number, audio: boolean) =>
     ipcRenderer.send("screenPickerCallback", idx, audio),
 });
