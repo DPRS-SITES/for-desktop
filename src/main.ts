@@ -38,6 +38,7 @@ const loadInject = () => {
     try {
       const plugins: string[] = [
         "titlebar.js",
+        "fluxerbanners.js"
         "screenshare.js",
         "css.js",
         "menu.js",
