@@ -11,6 +11,9 @@ Application for Windows, macOS, and Linux.
 > [!NOTE]
 > Cloud Client is not officially supported by ```Fluxer Platform AB``` team
 
+> [!NOTE]
+> Cloud Client Uses some plugins from ```Avia Client``` This will change in the future/or be adapted into the client
+
 
 ## Development Guide
 
