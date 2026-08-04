@@ -2,7 +2,7 @@
 <h1>
  Cloud Client for Desktop
 </h1>
- <img width="256" height="256" alt="NOIMAGEYET" src="NOIMAGEYET" /><br />
+ <img width="256" height="256" alt="Fluxer Icon" src="https://fluxerstatic.com/web/og-image-default.png /><br />
 Fork of the Stoat desktop app that allows you to access the objectively better chat platform, Fluxer.<br />
 Application for Windows, macOS, and Linux.
 </div>
